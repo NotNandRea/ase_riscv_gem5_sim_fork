@@ -136,3 +136,58 @@ sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1
 - Antonio Porsia (antonio.porsia@polito.it)
 
 Feel free to contribute with issues and pull requests or contact us!
+
+# Introduced by me
+
+
+## Recommended Docker Compose Setup
+
+The following Docker Compose configuration provides ASE Studio, a web-based file manager, and a VS Code tunnel for remote development. All services share the same workspace through a persistent Docker volume.
+
+Create a `compose.yaml` file:
+
+```yaml
+services:
+  ASEStudio:
+    image: ghcr.io/notnandrea/ase-web:latest
+    restart: unless-stopped
+    container_name: Studio
+    ports:
+      - "8081:80"
+    volumes:
+      - data:/ase/ase_riscv_gem5_sim/
+
+  filebrowser:
+    image: ghcr.io/gtsteffaniak/filebrowser:stable
+    container_name: filebrowser
+    restart: unless-stopped
+    volumes:
+      - data:/srv
+      - filebrowserConfig:/home/filebrowser/data
+    ports:
+      - "8082:80"
+
+  vscode-tunnel:
+    image: reverie89/vscode-tunnel:latest
+    container_name: vscode-tunnel
+    hostname: ase-vscode
+    restart: unless-stopped
+    working_dir: /workspace/programs
+    volumes:
+      - data:/workspace
+      - vscodeConfig:/root
+
+volumes:
+  data:
+  filebrowserConfig:
+  vscodeConfig:
+```
+
+Start the environment with:
+
+```bash
+docker compose up -d
+```
+
+ASE Studio is available at `http://localhost:8081`, while File Browser is accessible at `http://localhost:8082` (user and password admin:admin). The VS Code tunnel enables remote development through Visual Studio Code, you can connect via vsode or (vscode.dev)[vscode.dev].
+
